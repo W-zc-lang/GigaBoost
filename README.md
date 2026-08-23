@@ -18,6 +18,7 @@
 - 💤 **关闭电源节能**：注册表 `PnPCapabilities=24`，禁止系统为省电关闭网卡，降低延迟抖动。
 - 📊 **优化前后对比**：实测优化前后连接速率与下载速率，给出提升数据。
 - 🪟 **图形界面**：有介绍页、增强过程 5 步详解、实时日志，纯小白也能看懂。
+- 🎨 **白色清爽主题 + 高 DPI 适配**：高分屏下界面清晰不模糊，配全新绿色品牌图标。
 - 🔧 **免设备管理器**：所有操作后台完成，不用你去找网卡属性。
 
 ---
@@ -70,7 +71,7 @@ pip install pyinstaller
 python app.py
 
 # 打包为单文件管理员 EXE
-pyinstaller --onefile --windowed --uac-admin --name GigaBoost app.py
+pyinstaller --onefile --windowed --uac-admin --icon=icon.ico --name GigaBoost app.py
 # 产物位于 dist/GigaBoost.exe
 ```
 

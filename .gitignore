@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+
+# PyInstaller 构建产物
+build/
+*.spec
+
+# 本地临时文件
+*.ps1.tmp
+
+dist/GigaBoost.exe

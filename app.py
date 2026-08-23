@@ -79,8 +79,8 @@ class GigaBoostApp:
     def __init__(self, root):
         self.root = root
         root.title("GigaBoost · 千兆宽带 WiFi 5G 加速神器")
-        root.geometry("820x720")
-        root.resizable(False, False)
+        root.geometry("1080x980")
+        root.resizable(True, True)
         self._load_icon(root)
 
         # 配色
@@ -126,14 +126,16 @@ class GigaBoostApp:
         tk.Label(detail, text=steps, bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 11),
                  justify=tk.LEFT, wraplength=770).pack(padx=12, pady=8, anchor="w")
 
-        # 按钮
-        btn_frame = tk.Frame(root, bg=BG)
-        btn_frame.pack(fill=tk.X, padx=16, pady=(2, 6))
-        self.btn = tk.Button(btn_frame, text="开始增强网速", command=self.on_boost,
-                             bg=ACCENT, fg="#ffffff", font=("Microsoft YaHei UI", 14, "bold"),
+        # 主操作区（醒目卡片，确保按钮不会被淹没）
+        action_card = tk.Frame(root, bg="#ecfdf5", bd=2, relief=tk.GROOVE)
+        action_card.pack(fill=tk.X, padx=16, pady=(6, 12))
+        tk.Label(action_card, text="准备好了吗？一键让千兆宽带真正跑满 ↓", bg="#ecfdf5",
+                 fg="#065f46", font=("Microsoft YaHei UI", 13, "bold")).pack(anchor="center", pady=(14, 6))
+        self.btn = tk.Button(action_card, text="🚀 开始增强网速", command=self.on_boost,
+                             bg=ACCENT, fg="#ffffff", font=("Microsoft YaHei UI", 18, "bold"),
                              activebackground="#15803d", activeforeground="#ffffff",
-                             height=1, relief=tk.FLAT, cursor="hand2")
-        self.btn.pack(fill=tk.X, ipady=10)
+                             height=1, relief=tk.FLAT, cursor="hand2", padx=24, pady=16)
+        self.btn.pack(anchor="center", ipady=16, pady=(0, 16))
 
         # 结果
         res = tk.LabelFrame(root, text=" 优化结果 ", bg=PANEL, fg=ACCENT2,
@@ -246,7 +248,18 @@ def main():
             ctypes.windll.user32.SetProcessDPIAware()
         except Exception:
             pass
+    # 高分屏下让字体/控件随系统 DPI 放大，避免界面与按钮显小
+    scale = 1.0
+    try:
+        dpi = ctypes.windll.shcore.GetDpiForSystem()
+        scale = max(1.0, float(dpi) / 96.0)
+    except Exception:
+        pass
     root = tk.Tk()
+    try:
+        root.tk.call("tk", "scaling", scale)
+    except Exception:
+        pass
     app = GigaBoostApp(root)
     root.mainloop()
 

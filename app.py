@@ -2198,9 +2198,9 @@ class GigaBoostApp:
     def __init__(self, root):
         self.root = root
         root.title("GigaBoost · 千兆宽带 WiFi 5G 加速神器")
-        root.geometry("1280x1180")
+        root.geometry("1000x900")
         root.resizable(True, True)
-        root.minsize(1100, 900)
+        root.minsize(900, 700)
         self._load_icon(root)
 
         # 配色
@@ -2222,9 +2222,33 @@ class GigaBoostApp:
         tk.Label(header, text="千兆宽带 WiFi 5G 加速神器 · 一键强制 5GHz 优先，告别 2.4G 拥堵",
                  bg=BG, fg=MUTE, font=("Microsoft YaHei UI", 16)).pack(anchor="w", padx=24, pady=(2, 0))
 
-        # 主容器（带滚动条，防止放大后内容超出）
-        container = tk.Frame(root, bg=BG)
-        container.pack(fill=tk.BOTH, expand=True, padx=20, pady=(10, 0))
+        # 主容器：可滚动 Canvas（解决小屏幕/默认高度下日志和赞赏码被截断的问题）
+        outer = tk.Frame(root, bg=BG)
+        outer.pack(fill=tk.BOTH, expand=True, padx=20, pady=(10, 0))
+
+        canvas = tk.Canvas(outer, bg=BG, highlightthickness=0)
+        scrollbar = tk.Scrollbar(outer, orient=tk.VERTICAL, command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        container = tk.Frame(canvas, bg=BG)
+        canvas_window = canvas.create_window((0, 0), window=container, anchor="nw")
+
+        def _on_configure(event):
+            # 让内部框架宽度与 Canvas 可视区一致
+            canvas.itemconfig(canvas_window, width=event.width)
+
+        def _on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def _on_mousewheel(event):
+            # Windows 滚轮事件 delta 通常是 ±120
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind("<Configure>", _on_configure)
+        container.bind("<Configure>", _on_frame_configure)
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         # 软件介绍
         intro = RoundedFrame(container, bg_color=PANEL, fg_color=ACCENT2,
@@ -2237,7 +2261,7 @@ class GigaBoostApp:
                        "并关闭「允许计算机关闭此设备以节约电源」，让千兆带宽真正喂满你的设备。\n"
                        "全程无需打开设备管理器，兼容 Windows 10 / 11 各版本。"),
                  bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 18, "bold"),
-                 justify=tk.LEFT, wraplength=1160).pack(padx=8, pady=10, anchor="w")
+                 justify=tk.LEFT, wraplength=1100).pack(padx=8, pady=10, anchor="w")
 
         # 增强原理
         detail = RoundedFrame(container, bg_color=PANEL, fg_color=ACCENT2,
@@ -2252,7 +2276,7 @@ class GigaBoostApp:
             "⑤ 重启生效 + 对比：重启无线适配器，并实测优化前后连接速率与下载速率，给出提升数据。"
         )
         tk.Label(detail.inner, text=steps, bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 18),
-                 justify=tk.LEFT, wraplength=1160).pack(padx=8, pady=10, anchor="w")
+                 justify=tk.LEFT, wraplength=1100).pack(padx=8, pady=10, anchor="w")
 
         # 操作区
         action_card = RoundedFrame(container, bg_color="#ecfdf5", fg_color="#065f46",
@@ -2273,11 +2297,11 @@ class GigaBoostApp:
         res.pack(fill=tk.X, pady=(0, 10))
         self.result_var = tk.StringVar(value="尚未运行。点击上方按钮开始优化。")
         tk.Label(res.inner, textvariable=self.result_var, bg=PANEL, fg=TEXT,
-                 font=("Microsoft YaHei UI", 17), justify=tk.LEFT, wraplength=1160).pack(padx=8, pady=10, anchor="w")
+                 font=("Microsoft YaHei UI", 17), justify=tk.LEFT, wraplength=1100).pack(padx=8, pady=10, anchor="w")
 
         # 赞赏码 + 日志 左右布局
         bottom = tk.Frame(container, bg=BG)
-        bottom.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        bottom.pack(fill=tk.X, pady=(0, 10))
         bottom.grid_columnconfigure(0, weight=3)
         bottom.grid_columnconfigure(1, weight=1)
         bottom.grid_rowconfigure(0, weight=1, minsize=260)

@@ -1958,15 +1958,32 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 chcp 65001 | Out-Null
 $ErrorActionPreference = 'SilentlyContinue'
 function Log($m){ Write-Output $m }
-try {
-  $adp = Get-NetAdapter | Where-Object {
+function Find-WifiAdapter {
+  $found = Get-NetAdapter | Where-Object {
     $_.MediaType -eq 'Native 802.11' -or
     $_.InterfaceDescription -match 'Wireless|Wi-?Fi|802\\.11|WLAN|无线' -or
-    $_.Name -match 'Wi-?Fi|WLAN|无线网络|无线'
+    ($_.Name -and ($_.Name -match 'Wi-?Fi|WLAN|无线网络|无线'))
   } | Select-Object -First 1
-  if ((-not $adp) -or ([string]::IsNullOrWhiteSpace($adp.Name))) { Write-Output "ERROR|未找到无线网卡，请确认无线网卡已启用并连接"; exit 1 }
+  return $found
+}
+function Safe-AdapterName {
+  param([string]$hint)
+  if (-not ([string]::IsNullOrWhiteSpace($hint))) {
+    $byName = Get-NetAdapter | Where-Object { $_.Name -eq $hint } | Select-Object -First 1
+    if ($byName -and (-not ([string]::IsNullOrWhiteSpace($byName.Name)))) { return $byName.Name.Trim() }
+  }
+  $adp = Find-WifiAdapter
+  if ($adp -and (-not ([string]::IsNullOrWhiteSpace($adp.Name)))) { return $adp.Name.Trim() }
+  return $null
+}
+try {
+  $adp = Find-WifiAdapter
+  if ((-not $adp) -or ([string]::IsNullOrWhiteSpace($adp.Name))) {
+    Write-Output "ERROR|未找到无线网卡，请确认无线网卡已启用并连接"
+    exit 1
+  }
   $an = $adp.Name.Trim()
-  Log ("[1/5] 已识别无线网卡: " + $an)
+  Log ("[1/5] 已识别无线网卡: '" + $an + "'")
   function Measure-Speed($phase){
     Log ("        " + $phase)
     $urls = @(
@@ -1988,30 +2005,52 @@ try {
     }
     return $null
   }
-  $beforeLink = (Get-NetAdapter -Name $an).LinkSpeed
+  $naBefore = Safe-AdapterName $an
+  if (-not $naBefore) { throw "无法获取优化前的网卡信息" }
+  $beforeLink = (Get-NetAdapter -Name $naBefore).LinkSpeed
   $beforeSpeed = Measure-Speed '优化前测速中...'
   Log ("[2/5] 优化前连接速率: " + $beforeLink)
   Log ("[3/5] 设置首选 5GHz 频带 (强制优先连接 5G WiFi)...")
-  $p = Get-NetAdapterAdvancedProperty -Name $an | Where-Object { $_.DisplayName -match 'band|频带|prefer|首选' } | Select-Object -First 1
-  if ($p){
+  $p = Get-NetAdapterAdvancedProperty -Name $naBefore | Where-Object { $_.DisplayName -match 'band|频带|prefer|首选' } | Select-Object -First 1
+  if ($p -and $p.DisplayName){
     $pn = $p.DisplayName
-    $vv = (Get-NetAdapterAdvancedProperty -Name $an -DisplayName $pn).ValidDisplayValues
+    $vv = (Get-NetAdapterAdvancedProperty -Name $naBefore -DisplayName $pn).ValidDisplayValues
     $tv = $vv | Where-Object { $_ -match '5' -and ($_ -match 'GHz|赫兹|5G') } | Select-Object -First 1
-    if ($tv){ Set-NetAdapterAdvancedProperty -Name $an -DisplayName $pn -DisplayValue $tv -NoRestart; Log ("        已写入: " + $pn + " = " + $tv) }
+    if ($tv){ Set-NetAdapterAdvancedProperty -Name $naBefore -DisplayName $pn -DisplayValue $tv -NoRestart; Log ("        已写入: " + $pn + " = " + $tv) }
     else { Log "        未找到明确的 5G 选项，已跳过" }
   } else { Log "        未找到'首选频带'属性，已跳过" }
   Log ("[4/5] 关闭网卡电源节能 (注册表 PnPCapabilities=24)...")
-  $dev = Get-CimInstance Win32_NetworkAdapter | Where-Object { $_.NetConnectionID -eq $an -or $_.Name -eq $an } | Select-Object -First 1
-  if ($dev){
+  $dev = Get-CimInstance Win32_NetworkAdapter | Where-Object { $_.NetConnectionID -eq $naBefore -or $_.Name -eq $naBefore } | Select-Object -First 1
+  if ($dev -and $dev.PNPDeviceID){
     $rp = "HKLM:\SYSTEM\CurrentControlSet\Enum\$($dev.PNPDeviceID)\Device Parameters"
     if (-not (Test-Path $rp)){ New-Item -Path $rp -Force | Out-Null }
     New-ItemProperty -Path $rp -Name 'PnPCapabilities' -Value 24 -PropertyType DWord -Force | Out-Null
   }
   Log ("[5/5] 重启无线网卡使设置生效...")
-  Restart-NetAdapter -Name $an -Confirm:$false
-  $w=0; while($w -lt 20){ if((Get-NetAdapter -Name $an).Status -eq 'Up'){break}; Start-Sleep -Seconds 1; $w++ }
+  # 在重启前再次确认名称非空，并捕获异常、提供降级方案
+  $naRestart = Safe-AdapterName $naBefore
+  if (-not $naRestart) { throw "重启前无法定位网卡名称，优化中止" }
+  try {
+    Restart-NetAdapter -Name $naRestart -Confirm:$false -ErrorAction Stop
+  } catch {
+    Log "        Restart-NetAdapter 失败，尝试禁用/启用网卡..."
+    try { Disable-NetAdapter -Name $naRestart -Confirm:$false -ErrorAction Stop } catch { Log ("        禁用网卡失败: " + $_.Exception.Message) }
+    Start-Sleep -Seconds 2
+    try { Enable-NetAdapter -Name $naRestart -Confirm:$false -ErrorAction Stop } catch { Log ("        启用网卡失败: " + $_.Exception.Message) }
+  }
+  $w=0
+  while($w -lt 20){
+    $naNow = Safe-AdapterName $naRestart
+    if (-not $naNow) { Start-Sleep -Seconds 1; $w++; continue }
+    $status = (Get-NetAdapter -Name $naNow).Status
+    if ($status -eq 'Up') { break }
+    Start-Sleep -Seconds 1
+    $w++
+  }
   Start-Sleep -Seconds 3
-  $afterLink = (Get-NetAdapter -Name $an).LinkSpeed
+  $naAfter = Safe-AdapterName $naRestart
+  if (-not $naAfter) { throw "重启后无法重新定位网卡" }
+  $afterLink = (Get-NetAdapter -Name $naAfter).LinkSpeed
   $afterSpeed = Measure-Speed '优化后测速中...'
   $bs = if($beforeSpeed){$beforeSpeed.ToString()}else{'N/A'}
   $as = if($afterSpeed){$afterSpeed.ToString()}else{'N/A'}

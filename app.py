@@ -79,7 +79,7 @@ class GigaBoostApp:
     def __init__(self, root):
         self.root = root
         root.title("GigaBoost · 千兆宽带 WiFi 5G 加速神器")
-        root.geometry("1080x980")
+        root.geometry("1280x1040")
         root.resizable(True, True)
         self._load_icon(root)
 
@@ -94,28 +94,28 @@ class GigaBoostApp:
         root.configure(bg=BG)
 
         # 顶部标题
-        header = tk.Frame(root, bg=BG, height=84)
+        header = tk.Frame(root, bg=BG, height=100)
         header.pack(fill=tk.X)
         tk.Label(header, text="⚡ GigaBoost", bg=BG, fg=ACCENT,
-                 font=("Microsoft YaHei UI", 30, "bold")).pack(anchor="w", padx=20, pady=(14, 0))
+                 font=("Microsoft YaHei UI", 36, "bold")).pack(anchor="w", padx=20, pady=(18, 0))
         tk.Label(header, text="千兆宽带 WiFi 5G 加速神器 · 一键强制 5GHz 优先，告别 2.4G 拥堵",
-                 bg=BG, fg=MUTE, font=("Microsoft YaHei UI", 14)).pack(anchor="w", padx=20, pady=(2, 0))
+                 bg=BG, fg=MUTE, font=("Microsoft YaHei UI", 16)).pack(anchor="w", padx=20, pady=(2, 0))
 
         # 介绍
         intro = tk.LabelFrame(root, text=" 软件介绍 ", bg=PANEL, fg=ACCENT2,
-                              font=("Microsoft YaHei UI", 14, "bold"), bd=1, relief=tk.GROOVE)
-        intro.pack(fill=tk.X, padx=16, pady=(10, 6))
+                              font=("Microsoft YaHei UI", 16, "bold"), bd=1, relief=tk.GROOVE)
+        intro.pack(fill=tk.X, padx=20, pady=(12, 8))
         tk.Label(intro,
                  text=("办了千兆宽带，测速却跑不满？多半是无线网卡被系统默认连到了拥挤的 2.4GHz 频段。"
                        "GigaBoost 会自动请求管理员权限，把网卡的「首选频带」强制设为 5GHz，"
                        "并关闭「允许计算机关闭此设备以节约电源」，让千兆带宽真正喂满你的设备。\n"
                        "全程无需打开设备管理器，兼容 Windows 10 / 11 各版本。"),
-                 bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 16, "bold"), justify=tk.LEFT, wraplength=1000).pack(padx=12, pady=8)
+                 bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 18, "bold"), justify=tk.LEFT, wraplength=1200).pack(padx=16, pady=12)
 
         # 增强原理 5 步
         detail = tk.LabelFrame(root, text=" 增强原理（5 步详解） ", bg=PANEL, fg=ACCENT2,
-                              font=("Microsoft YaHei UI", 14, "bold"), bd=1, relief=tk.GROOVE)
-        detail.pack(fill=tk.X, padx=16, pady=(0, 6))
+                              font=("Microsoft YaHei UI", 16, "bold"), bd=1, relief=tk.GROOVE)
+        detail.pack(fill=tk.X, padx=20, pady=(0, 8))
         steps = (
             "① 自动提权：请求管理员权限，以修改网卡高级属性与注册表。\n"
             "② 自动识别网卡：按硬件类型 / 驱动名 / 接口名智能匹配，兼容 Wi-Fi、WLAN、无线网络等命名。\n"
@@ -123,36 +123,36 @@ class GigaBoostApp:
             "④ 关闭电源节能：修改注册表 PnPCapabilities=24，禁止系统为省电关闭网卡，降低延迟抖动。\n"
             "⑤ 重启生效 + 对比：重启无线适配器，并实测优化前后连接速率与下载速率，给出提升数据。"
         )
-        tk.Label(detail, text=steps, bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 16),
-                 justify=tk.LEFT, wraplength=1000).pack(padx=12, pady=8, anchor="w")
+        tk.Label(detail, text=steps, bg=PANEL, fg=TEXT, font=("Microsoft YaHei UI", 18),
+                 justify=tk.LEFT, wraplength=1200).pack(padx=16, pady=12, anchor="w")
 
         # 主操作区（醒目卡片，确保按钮不会被淹没）
         action_card = tk.Frame(root, bg="#ecfdf5", bd=2, relief=tk.GROOVE)
-        action_card.pack(fill=tk.X, padx=16, pady=(6, 12))
+        action_card.pack(fill=tk.X, padx=20, pady=(8, 16))
         tk.Label(action_card, text="准备好了吗？一键让千兆宽带真正跑满 ↓", bg="#ecfdf5",
-                 fg="#065f46", font=("Microsoft YaHei UI", 16, "bold")).pack(anchor="center", pady=(14, 6))
+                 fg="#065f46", font=("Microsoft YaHei UI", 18, "bold")).pack(anchor="center", pady=(16, 8))
         self.btn = tk.Button(action_card, text="🚀 开始增强网速", command=self.on_boost,
-                             bg=ACCENT, fg="#ffffff", font=("Microsoft YaHei UI", 18, "bold"),
+                             bg=ACCENT, fg="#ffffff", font=("Microsoft YaHei UI", 20, "bold"),
                              activebackground="#15803d", activeforeground="#ffffff",
-                             height=1, relief=tk.FLAT, cursor="hand2", padx=24, pady=16)
-        self.btn.pack(anchor="center", ipady=16, pady=(0, 16))
+                             height=1, relief=tk.FLAT, cursor="hand2", padx=32, pady=20)
+        self.btn.pack(anchor="center", ipady=20, pady=(0, 18))
 
         # 结果
         res = tk.LabelFrame(root, text=" 优化结果 ", bg=PANEL, fg=ACCENT2,
-                            font=("Microsoft YaHei UI", 14, "bold"), bd=1, relief=tk.GROOVE)
-        res.pack(fill=tk.X, padx=16, pady=(0, 6))
+                            font=("Microsoft YaHei UI", 16, "bold"), bd=1, relief=tk.GROOVE)
+        res.pack(fill=tk.X, padx=20, pady=(0, 8))
         self.result_var = tk.StringVar(value="尚未运行。点击上方按钮开始优化。")
         tk.Label(res, textvariable=self.result_var, bg=PANEL, fg=TEXT,
-                 font=("Microsoft YaHei UI", 15), justify=tk.LEFT, wraplength=1000).pack(padx=12, pady=8, anchor="w")
+                 font=("Microsoft YaHei UI", 17), justify=tk.LEFT, wraplength=1200).pack(padx=16, pady=12, anchor="w")
 
         # 日志
         logf = tk.LabelFrame(root, text=" 实时日志 ", bg=PANEL, fg=ACCENT2,
-                             font=("Microsoft YaHei UI", 14, "bold"), bd=1, relief=tk.GROOVE)
-        logf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 10))
+                             font=("Microsoft YaHei UI", 16, "bold"), bd=1, relief=tk.GROOVE)
+        logf.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 12))
         self.log = scrolledtext.ScrolledText(logf, bg="#ffffff", fg="#1f2937",
-                                             font=("Consolas", 13), height=12, relief=tk.FLAT,
+                                             font=("Consolas", 14), height=12, relief=tk.FLAT,
                                              insertbackground="#1f2937")
-        self.log.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+        self.log.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def _load_icon(self, root):
         try:
@@ -241,13 +241,18 @@ class GigaBoostApp:
 
 
 def main():
+    # 优先使用 Win10 现代 PerMonitorV2 DPI 感知，让 tkinter 真正随系统缩放
     try:
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4
+        ctypes.windll.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
     except Exception:
         try:
-            ctypes.windll.user32.SetProcessDPIAware()
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
         except Exception:
-            pass
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
     # 高分屏下让字体/控件随系统 DPI 放大，避免界面与按钮显小
     scale = 1.0
     try:

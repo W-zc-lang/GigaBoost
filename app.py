@@ -2089,6 +2089,9 @@ class RoundedFrame(tk.Canvas):
     def __init__(self, parent, bg_color, fg_color=None, title=None, title_font=None,
                  radius=16, padx=0, pady=0, **kwargs):
         self.frame_height = kwargs.pop("height", None)
+        # 显式把 height 传给 Canvas，否则圆角面板会被压成默认 7px 高
+        if self.frame_height is not None:
+            kwargs["height"] = self.frame_height
         super().__init__(parent, bg=kwargs.pop("bg", "#ffffff"), highlightthickness=0, **kwargs)
         self.bg_color = bg_color
         self.fg_color = fg_color or "#1f2937"
@@ -2105,6 +2108,9 @@ class RoundedFrame(tk.Canvas):
         self.delete("all")
         w = self.winfo_width()
         h = self.winfo_height()
+        # 若尚未映射导致尺寸为 1，用显式高度兜底
+        if h < 20 and self.frame_height:
+            h = self.frame_height
         if w < 20 or h < 20:
             self.after(10, self._draw)
             return
@@ -2116,7 +2122,7 @@ class RoundedFrame(tk.Canvas):
                              font=self.title_font, anchor="nw")
             title_h = 26
         # place inner frame
-        self.inner.place(x=16, y=10 + title_h, width=w - 32, height=h - 20 - title_h)
+        self.inner.place(x=16, y=10 + title_h, width=max(20, w - 32), height=max(20, h - 20 - title_h))
 
     def set_title(self, title):
         self.title = title
@@ -2192,8 +2198,9 @@ class GigaBoostApp:
     def __init__(self, root):
         self.root = root
         root.title("GigaBoost · 千兆宽带 WiFi 5G 加速神器")
-        root.geometry("1280x1080")
+        root.geometry("1280x1180")
         root.resizable(True, True)
+        root.minsize(1100, 900)
         self._load_icon(root)
 
         # 配色
@@ -2222,8 +2229,8 @@ class GigaBoostApp:
         # 软件介绍
         intro = RoundedFrame(container, bg_color=PANEL, fg_color=ACCENT2,
                              title=" 软件介绍 ", title_font=("Microsoft YaHei UI", 16, "bold"),
-                             radius=20, height=180)
-        intro.pack(fill=tk.X, pady=(0, 12))
+                             radius=20, height=170)
+        intro.pack(fill=tk.X, pady=(0, 10))
         tk.Label(intro.inner,
                  text=("办了千兆宽带，测速却跑不满？多半是无线网卡被系统默认连到了拥挤的 2.4GHz 频段。"
                        "GigaBoost 会自动请求管理员权限，把网卡的「首选频带」强制设为 5GHz，"
@@ -2235,8 +2242,8 @@ class GigaBoostApp:
         # 增强原理
         detail = RoundedFrame(container, bg_color=PANEL, fg_color=ACCENT2,
                               title=" 增强原理（5 步详解） ", title_font=("Microsoft YaHei UI", 16, "bold"),
-                              radius=20, height=210)
-        detail.pack(fill=tk.X, pady=(0, 12))
+                              radius=20, height=200)
+        detail.pack(fill=tk.X, pady=(0, 10))
         steps = (
             "① 自动提权：请求管理员权限，以修改网卡高级属性与注册表。\n"
             "② 自动识别网卡：按硬件类型 / 驱动名 / 接口名智能匹配，兼容 Wi-Fi、WLAN、无线网络等命名。\n"
@@ -2249,8 +2256,8 @@ class GigaBoostApp:
 
         # 操作区
         action_card = RoundedFrame(container, bg_color="#ecfdf5", fg_color="#065f46",
-                                   radius=24, height=150)
-        action_card.pack(fill=tk.X, pady=(0, 12))
+                                   radius=24, height=140)
+        action_card.pack(fill=tk.X, pady=(0, 10))
         tk.Label(action_card.inner, text="准备好了吗？一键让千兆宽带真正跑满 ↓", bg="#ecfdf5",
                  fg="#065f46", font=("Microsoft YaHei UI", 18, "bold")).pack(anchor="center", pady=(4, 8))
         self.btn = RoundedButton(action_card.inner, text="🚀 开始优化", command=self.on_boost,
@@ -2262,31 +2269,31 @@ class GigaBoostApp:
         # 结果
         res = RoundedFrame(container, bg_color=PANEL, fg_color=ACCENT2,
                            title=" 优化结果 ", title_font=("Microsoft YaHei UI", 16, "bold"),
-                           radius=20, height=120)
-        res.pack(fill=tk.X, pady=(0, 12))
+                           radius=20, height=110)
+        res.pack(fill=tk.X, pady=(0, 10))
         self.result_var = tk.StringVar(value="尚未运行。点击上方按钮开始优化。")
         tk.Label(res.inner, textvariable=self.result_var, bg=PANEL, fg=TEXT,
                  font=("Microsoft YaHei UI", 17), justify=tk.LEFT, wraplength=1160).pack(padx=8, pady=10, anchor="w")
 
         # 赞赏码 + 日志 左右布局
         bottom = tk.Frame(container, bg=BG)
-        bottom.pack(fill=tk.BOTH, expand=True)
+        bottom.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         bottom.grid_columnconfigure(0, weight=3)
         bottom.grid_columnconfigure(1, weight=1)
-        bottom.grid_rowconfigure(0, weight=1)
+        bottom.grid_rowconfigure(0, weight=1, minsize=260)
 
         logf = RoundedFrame(bottom, bg_color=PANEL, fg_color=ACCENT2,
                             title=" 实时日志 ", title_font=("Microsoft YaHei UI", 16, "bold"),
-                            radius=20)
+                            radius=20, height=260)
         logf.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
         self.log = scrolledtext.ScrolledText(logf.inner, bg="#ffffff", fg="#1f2937",
-                                             font=("Consolas", 14), relief=tk.FLAT,
+                                             font=("Consolas", 14), height=10, relief=tk.FLAT,
                                              insertbackground="#1f2937")
         self.log.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         reward = RoundedFrame(bottom, bg_color=PANEL, fg_color=ACCENT2,
                               title=" 赞赏支持 ", title_font=("Microsoft YaHei UI", 16, "bold"),
-                              radius=20)
+                              radius=20, height=260)
         reward.grid(row=0, column=1, sticky="nsew")
         self._load_reward_image(reward.inner)
 

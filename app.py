@@ -1952,16 +1952,20 @@ m19gKjvLvJX50ApIfqTBhBBCCCGufVe8aJUQQggh/meRYEIIIYQQZZFgQgghhBBlkWBCCCGEEGWRYEII
 IYQQZfn/AeSQ56QQFCfJAAAAAElFTkSuQmCC"""
 
 PS_SCRIPT = r'''
+# 强制 UTF-8 输出，避免中文在管道中被误读为乱码
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001 | Out-Null
 $ErrorActionPreference = 'SilentlyContinue'
 function Log($m){ Write-Output $m }
 try {
   $adp = Get-NetAdapter | Where-Object {
     $_.MediaType -eq 'Native 802.11' -or
-    $_.InterfaceDescription -match 'Wireless|Wi-?Fi|802\.11|WLAN|无线' -or
+    $_.InterfaceDescription -match 'Wireless|Wi-?Fi|802\\.11|WLAN|无线' -or
     $_.Name -match 'Wi-?Fi|WLAN|无线网络|无线'
   } | Select-Object -First 1
-  if (-not $adp) { Write-Output "ERROR|未找到无线网卡，请确认无线网卡已启用并连接"; exit 1 }
-  $an = $adp.Name
+  if ((-not $adp) -or ([string]::IsNullOrWhiteSpace($adp.Name))) { Write-Output "ERROR|未找到无线网卡，请确认无线网卡已启用并连接"; exit 1 }
+  $an = $adp.Name.Trim()
   Log ("[1/5] 已识别无线网卡: " + $an)
   function Measure-Speed($phase){
     Log ("        " + $phase)
@@ -2015,7 +2019,9 @@ try {
   $g = if($gain){$gain.ToString()}else{'N/A'}
   Write-Output ("RESULT|beforeLink=" + $beforeLink + "|afterLink=" + $afterLink + "|beforeSpeed=" + $bs + "|afterSpeed=" + $as + "|gain=" + $g)
 } catch {
-  Write-Output ("ERROR|" + $_.Exception.Message)
+  $errMsg = $_.Exception.Message
+  $errLine = $_.InvocationInfo.ScriptLineNumber
+  Write-Output ("ERROR|" + $errMsg + " (脚本行号: " + $errLine + ")")
 }
 '''
 

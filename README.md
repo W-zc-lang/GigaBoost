@@ -1,14 +1,28 @@
 # ⚡ GigaBoost · 千兆宽带 WiFi 5G 加速神器
 
-> 办了千兆宽带，测速却跑不满？多半是无线网卡被系统默认连到了拥挤的 **2.4GHz** 频段。
-> GigaBoost 一键强制网卡优先连接 **5GHz**，并关闭电源节能，让千兆带宽真正喂满你的设备。
-> 全程无需打开设备管理器，兼容 Windows 10 / 11 各版本。
+> 办了千兆宽带却跑不满？多半是网卡被默认连到拥挤的 **2.4GHz**。GigaBoost 一键强制优先 **5GHz** 并关闭电源节能，全程无需打开设备管理器，兼容 Windows 10 / 11。
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg)](https://www.microsoft.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/W-zc-lang/GigaBoost?label=Release)](https://github.com/W-zc-lang/GigaBoost/releases)
 
+## ✨ 亮点
+
+- **一键 5GHz**：强制网卡优先连接 5GHz 频段
+- **关闭节能**：避免系统为了省电降速
+- **零配置**：图形界面，无需设备管理器
+- **兼容广**：Windows 10 / 11 各版本
+
+## 🚀 下载
+
+👉 **[GitHub Releases 下载 GigaBoost](https://github.com/W-zc-lang/GigaBoost/releases)**
+
+## ☕ 支持
+
+点个 **Star** ⭐ 支持作者。
+
 ---
+
 
 ## ✨ 功能亮点
 
